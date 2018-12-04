@@ -5,7 +5,7 @@ import br.edu.ifsul.modelo.Instituicao;
 import br.edu.ifsul.util.Util;
 import java.io.Serializable;
 import javax.faces.bean.ManagedBean;
-import javax.faces.bean.SessionScoped;
+import javax.faces.bean.ViewScoped;
 
 
 /**
@@ -15,46 +15,45 @@ import javax.faces.bean.SessionScoped;
  * @organization IFSUL - Campus Passo Fundo
  */
 @ManagedBean(name = "controleInstituicao")
-@SessionScoped
+@ViewScoped
 public class ControleInstituicao implements Serializable {
 
-    private InstituicaoDAO dao;
+    private InstituicaoDAO<Instituicao> dao;
     private Instituicao objeto;
-    
+    private InstituicaoDAO<Instituicao> daoInstituicao;
+
     public ControleInstituicao(){
-        dao = new InstituicaoDAO();
+        dao = new InstituicaoDAO<>();
+        daoInstituicao = new InstituicaoDAO<>();
     }
     
     public String listar(){
-        return "/privado/instituicao/listar?faces-redirect=true";
+        return "/privado/especialidade/listar?faces-redirect=true";
     }
     
-    public String novo(){
-        objeto = new Instituicao();
-        return "formulario?faces-redirect=true";
+    public void novo(){
+        objeto = new Instituicao();       
     }
     
-    public String salvar(){
-        if (dao.salvar(objeto)){
-            Util.mensagemInformacao(dao.getMensagem());
-            return "listar?faces-redirect=true";
+    public void salvar(){
+        boolean persistiu;
+        if(objeto.getId() == null){
+            persistiu = dao.persist(objeto);
         } else {
-            Util.mensagemErro(dao.getMensagem());
-            return "formulario?faces-redirect=true";
+            persistiu = dao.merge(objeto);
         }
-    }
+        if (persistiu){
+            Util.mensagemInformacao(dao.getMensagem());            
+        } else {
+            Util.mensagemErro(dao.getMensagem());            
+        }
+    }    
     
-    public String cancelar(){
-        return "listar?faces-redirect=true";
-    }
-    
-    public String editar(Integer id){
+    public void editar(Integer id){
         try {
-            objeto = dao.localizar(id);
-            return "formulario?faces-redirect=true";
+            objeto = dao.localizar(id);            
         } catch (Exception e){
-            Util.mensagemErro("Erro ao recuperar objeto: " + Util.getMensagemErro(e));
-            return "listar?faces-redirect=true";
+            Util.mensagemErro("Erro ao recuperar objeto: " + Util.getMensagemErro(e));            
         }
     }
     
@@ -67,12 +66,14 @@ public class ControleInstituicao implements Serializable {
         }
     }
 
-    public InstituicaoDAO getDao() {
-        return dao;
-    }
+
 
     public void setDao(InstituicaoDAO dao) {
         this.dao = dao;
+    }
+    
+    public InstituicaoDAO<Instituicao> getDao() {
+        return dao;
     }
 
     public Instituicao getObjeto() {
@@ -82,4 +83,13 @@ public class ControleInstituicao implements Serializable {
     public void setObjeto(Instituicao objeto) {
         this.objeto = objeto;
     }
+
+    public InstituicaoDAO<Instituicao> getDaoInstituicao() {
+        return daoInstituicao;
+    }
+
+    public void setDaoInstituicao(InstituicaoDAO<Instituicao> daoInstituicao) {
+        this.daoInstituicao = daoInstituicao;
+    }
+
 }

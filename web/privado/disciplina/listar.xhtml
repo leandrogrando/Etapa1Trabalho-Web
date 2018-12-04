@@ -1,0 +1,193 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <ui:composition template="/templates/template.xhtml">
+        <ui:define name="titulo">CRUD de Disciplina</ui:define>
+        <ui:define name="conteudo">
+            <h:form id="formListagem" prependId="false">
+                <p:growl/>
+                <p:messages/>
+                
+                <p:commandButton value="Novo"
+                                 actionListener="#{controleDisciplina.novo()}"
+                                 update="formEdicao"
+                                 process="@this"
+                                 oncomplete="PF('dlg').show();"
+                                 icon="ui-icon-plus"/>
+                
+                <div align="center"> 
+                    <p:defaultCommand target="filtrar"/>
+                    <p:panelGrid columns="11">
+                        <p:outputLabel value="Ordem: "/>
+                        <p:selectOneMenu id="ordem" value="#{controleDisciplina.dao.ordem}">
+                            <f:selectItem itemLabel="ID" itemValue="id"/>
+                            <f:selectItem itemLabel="Nome" itemValue="nome"/>
+                            <p:ajax update="listagem" />
+                        </p:selectOneMenu>
+                        <p:outputLabel value="Filtro: "/>                        
+                        <p:inputText value="#{controleDisciplina.dao.filtro}">
+                            <p:ajax update="listagem" event="blur"/>
+                        </p:inputText>                       
+                        <p:commandButton value="Filtrar" update="listagem" id="filtrar"
+                                         icon="ui-icon-search"/>
+                        <p:outputLabel value="Máximo de objetos:"/>
+                        <p:inputNumber value="#{controleDisciplina.dao.maximoObjetos}"
+                                       size="3"
+                                       thousandSeparator="" decimalSeparator=""
+                                       decimalPlaces="0">
+                            <p:ajax event="keyup" update="listagem"/>
+                        </p:inputNumber>
+                        <p:commandButton actionListener="#{controleDisciplina.dao.primeiro()}"
+                                         icon="ui-icon-seek-first" title="Primeiro"
+                                         update="listagem"/>
+                        <p:commandButton actionListener="#{controleDisciplina.dao.anterior()}"
+                                         icon="ui-icon-seek-prev" title="Anterior"
+                                         update="listagem"/>
+                        <p:commandButton actionListener="#{controleDisciplina.dao.proximo()}"
+                                         icon="ui-icon-seek-next" title="Próximo"
+                                         update="listagem"/>                        
+                        <p:commandButton actionListener="#{controleDisciplina.dao.ultimo()}"
+                                         icon="ui-icon-seek-end" title="Ultimo"
+                                         update="listagem"/>                        
+                    </p:panelGrid>                        
+                </div>
+                <p:dataTable value="#{controleDisciplina.dao.listaObjetos}" var="obj" id="listagem">
+                    <f:facet name="footer">
+                        <p:outputLabel value="#{controleDisciplina.dao.mensagemNavegacao}"/>
+                    </f:facet>
+                    <p:column headerText="ID">
+                        <p:outputLabel value="#{obj.id}"/>
+                    </p:column>
+                    <p:column headerText="Nome">
+                        <p:outputLabel value="#{obj.nome}"/>
+                    </p:column>                
+                    <p:column headerText="Ações">
+                        <div align="center">
+                            <p:commandButton
+                                actionListener="#{controleDisciplina.editar(obj.id)}"
+                                icon="ui-icon-pencil"
+                                update="formEdicao"
+                                process="@this"
+                                oncomplete="PF('dlg').show();"                                
+                                title="Editar"/>
+                            <p:commandButton
+                                actionListener="#{controleDisciplina.remover(obj.id)}"
+                                icon="ui-icon-trash" 
+                                process="@this"
+                                update="formListagem"
+                                title="Remover"
+                                onclick="if (!confirm('Confirma a exclusão'))
+                                            return false"/>
+                        </div>
+                    </p:column>
+                </p:dataTable>
+            </h:form>
+        </ui:define>
+        <ui:define name="dialogos">
+            <p:dialog header="Edição" widgetVar="dlg"
+                      resizable="false" modal="true"
+                      width="50%" height="100%" position="top">
+                <h:form id="formEdicao" prependId="false">
+                    <p:growl id="growl"/>
+                    <p:tabView id="tab" prependId="false">
+                        <p:tab title="Dados Principais">
+                            <div align="center">
+                                <p:panelGrid columns="2">
+                                    <p:outputLabel value="ID"/>
+                                    <p:inputText value="#{controleDisciplina.objeto.id}" size="5" 
+                                                 readonly="true"/>
+                                    
+                                    <p:outputLabel value="Nome" for="txtNome"/>
+                                    <p:inputText value="#{controleDisciplina.objeto.nome}"
+                                                 id="txtNome" size="50" maxlength="50"
+                                                 placeholder="Obrigatório"/>
+                                    
+                                    <p:outputLabel value="Descrição" for="txtDescricao"/>
+                                    <p:inputText value="#{controleDisciplina.objeto.descricao}"
+                                                 id="txtDescricao" size="50" maxlength="255"
+                                                 placeholder="Obrigatório"/>
+                                    
+                                    <p:outputLabel value="Carga horária" for="txtCargaHoraria"/>
+                                    <p:inputText value="#{controleDisciplina.objeto.cargaHorario}"
+                                                 id="txtCargaHoraria" size="5" maxlength="5"
+                                                 placeholder="Obrigatório"/>
+                                    
+                                    <p:outputLabel value="Conhecimentos Mínimos" for="txtConhecimentos"/>
+                                    <p:inputTextarea value="#{controleDisciplina.objeto.conhecimentosMinimos}"
+                                                 id="txtConhecimentos" rows="10" cols="50" />
+                                    
+                                    <p:outputLabel value="Curso"/>
+                                    <p:selectOneMenu value="#{controleDisciplina.objeto.curso}"
+                                                     id="selectAluno"
+                                                     filter="true" filterMatchMode="startsWith">
+                                        <f:converter converterId="converterCurso"/>
+                                        <f:selectItem noSelectionOption="true"
+                                                      itemLabel="Selecione um registro"/>
+                                        <f:selectItems value="#{controleDisciplina.daoCurso.listaTodos}"
+                                                       var="p" itemLabel="#{p.nome}"/>
+                                    </p:selectOneMenu>
+                                    
+                                </p:panelGrid>
+                            </div>
+                        </p:tab>
+                        <p:tab title="Alunos">
+                            <p:dataTable value="#{controleDisciplina.objeto.inscritosDisciplina}"
+                                         var="al" rowIndexVar="idxAluno" id="listaInscritos">
+                                <f:facet name="header">
+                                    <p:panelGrid columns="3">
+                                        <p:outputLabel value="Alunos"/>
+                                        <p:selectOneMenu value="#{controleDisciplina.aluno}"
+                                                         id="selectAluno"
+                                                         filter="true" filterMatchMode="startsWith">
+                                            <f:converter converterId="converterAluno"/>
+                                            <f:selectItem noSelectionOption="true"
+                                                          itemLabel="Selecione um registro"/>
+                                            <f:selectItems value="#{controleDisciplina.daoAluno.listaTodos}"
+                                                           var="a" itemLabel="#{a.nome}"/>
+                                        </p:selectOneMenu>
+                                        <p:commandButton value="Adicionar"
+                                            actionListener="#{controleDisciplina.adicionarAluno()}"
+                                            update="listaInscritos growl"
+                                            process="@this selectAluno"
+                                            icon="ui-icon-plus"/>
+                                    </p:panelGrid>
+                                </f:facet>
+                                <p:column headerText="Aluno">
+                                    <p:outputLabel value="#{al.nome}"/>
+                                </p:column>                             
+                                <p:column headerText="Ações">
+                                    <div align="center">
+                                        <p:commandButton
+                                            actionListener="#{controlePessoaFisica.removerAluno(idxAluno)}"
+                                            process="@this"
+                                            update="listaInscritos growl"
+                                            icon="ui-icon-trash"/>                                            
+                                    </div>
+                                </p:column>          
+                            </p:dataTable>
+                        </p:tab>
+                        
+                    </p:tabView>
+                    <p:panel>
+                        <div align="center">
+                            <p:commandButton value="Salvar"
+                                             icon="ui-icon-disk"
+                                             actionListener="#{controleDisciplina.salvar()}"
+                                             oncomplete="if(!args.validationFailed){PF('dlg').hide();}"
+                                             process="@form"
+                                             update="formEdicao formListagem"/>
+                        </div>                                                        
+                    </p:panel>
+                    <ui:include src="/templates/ajaxstatus.xhtml"/>
+                </h:form>          
+            </p:dialog>
+
+            
+        </ui:define>
+    </ui:composition>
+</html>
+
